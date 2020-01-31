@@ -4,7 +4,7 @@ const morgan = require('morgan');
 const bodyParser = require('body-parser');
 // const db = require('./db');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3368;
 const {
 	gameState,
 	addPlayer,
@@ -32,7 +32,7 @@ const {
 } = require('./gameUtil');
 
 // Logging middleware
-app.use(morgan('dev'));
+// app.use(morgan('dev'));
 
 // Body parsing middleware
 app.use(bodyParser.json());
@@ -45,9 +45,9 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // For all GET requests that aren't to an API route,
 // we will send the index.html!
-app.get('/*', (req, res, next) => {
-	res.sendFile(path.join(__dirname, '../public', 'index.html'));
-});
+// app.get('/*', (req, res, next) => {
+// 	res.sendFile(path.join(__dirname, '../public', 'index.html'));
+// });
 
 // Handle 404s
 app.use((req, res, next) => {
@@ -82,6 +82,10 @@ io.on('connection', (socket) => {
 
 	socket.on('join', () => {
 		addPlayer(socket.id);
+		io.sockets.emit('gameState', gameState);
+	});
+
+	socket.on('start', () => {
 		if (gameState.players.length > 1) {
 			setInitialBlinds();
 			dealPlayers();
@@ -121,7 +125,7 @@ io.on('connection', (socket) => {
 
 		// check if all players have completed an action
 		if (playerActionCheck()) {
-			allInMode()
+			allInMode();
 			changeBoard();
 			io.sockets.emit('sound', 'dealCards');
 			// send updated state
@@ -129,7 +133,7 @@ io.on('connection', (socket) => {
 			if (gameState.showdown === true) {
 				// note, if player leaves during setTimeout window, state is stuck waiting until next player joins
 				setTimeout(() => {
-
+return true;
 					if (determineWinner()) {
 						resetPlayerAction();
 						moveBlinds();
@@ -146,6 +150,28 @@ io.on('connection', (socket) => {
 				}, 4000);
 			}
 		}
+	});
+
+	socket.on('restart', (name) => {
+		if (determineWinner()) {
+			resetPlayerAction();
+			moveBlinds();
+			dealPlayers();
+				io.sockets.emit('rebuy', determineLose())
+			gameState.minBet = 20
+			gameState.showdown = false;
+			gameState.allIn = false
+			io.sockets.emit('gameState', gameState)
+			io.sockets.emit('sound', 'dealCards');
+		} else {
+			resetGame()
+		}
+	});
+	socket.on('up-bankroll', (bankroll) => {
+		const changePlayer = gameState.spectators.filter((player) => player.id === socket.id)[0];
+		changePlayer.bankroll = Number(bankroll);
+		console.log(changePlayer)
+		io.sockets.emit('gameState', gameState)
 	});
 
 	socket.on('playerRebuy', () => {

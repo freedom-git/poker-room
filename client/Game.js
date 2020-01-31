@@ -47,6 +47,9 @@ class Test extends Component {
 			betAmount: 10,
 			rebuyWindow: false
 		};
+		this.init = this.init.bind(this);
+		this.start = this.start.bind(this);
+		this.restart = this.restart.bind(this);
 		this.check = this.check.bind(this);
 		this.fold = this.fold.bind(this);
 		this.call = this.call.bind(this);
@@ -61,6 +64,12 @@ class Test extends Component {
 			this.setState({ id });
 		});
 		socket.on('gameState', (gameState) => {
+			console.log(gameState.action)
+			const me = gameState.players.filter(player=>player.id===this.state.id)[0]
+			if(me && me.name){
+				console.log(me.name, me.bankroll)
+				localStorage.setItem('bankroll', me.bankroll);
+			}
 			this.setState({ gameState, betAmount: gameState.minBet });
 		});
 		socket.on('sound', (soundEffect) => {
@@ -74,6 +83,31 @@ class Test extends Component {
 				this.setState({ rebuyWindow: true });
 			}
 		});
+		this.init();
+	}
+	init() {
+		let name = localStorage.getItem('name');
+		let bankroll = localStorage.getItem('bankroll');
+		if(name) {
+			setTimeout(() =>{
+				this.addName(name)
+				this.upBankroll(bankroll)
+				this.join()
+			},0)
+		}
+	}
+
+	upBankroll(bankroll) {
+		console.log('up-bankroll',bankroll)
+		socket.emit('up-bankroll',bankroll);
+	}
+
+	start() {
+		socket.emit('start');
+	}
+
+	restart() {
+		socket.emit('restart');
 	}
 
 	fold() {
@@ -112,6 +146,7 @@ class Test extends Component {
 	}
 
 	addName(name) {
+		localStorage.setItem('name', name);
 		this.setState({ name });
 		socket.emit('addName', name);
 	}
@@ -139,7 +174,7 @@ class Test extends Component {
 			return <Lobby players={players} spectators={this.state.gameState.spectators} addName={this.addName} />;
 		} else {
 			return (
-				<div style={{height: '100%'}}>
+				<div style={{ height: '100%' }}>
 					<div className="container">
 						<img className="table" src="poker_table.svg" />
 						<SoundEffects sound={this.state.sound} />
@@ -171,30 +206,36 @@ class Test extends Component {
 						check={this.check}
 						activeBet={this.state.gameState.activeBet}
 					/>
-					<Join joined={this.state.joined} players={this.state.gameState.players} join={this.join} />
-					<Chatbox messages={this.state.gameState.messages} messageSubmit={this.messageSubmit} />
-					<Dialog open={this.state.rebuyWindow} onClose={this.handleClose}>
-						<DialogTitle>
-							{' '}
-							<Typography align="center" variant="subheading" gutterBottom>
-								Would you like to rebuy?
+				<Button style={{ display: this.state.gameState.showdown?'block':'none' }} onClick={this.restart} variant="contained" color="secondary">
+					下一局
+			</Button>
+			<Button style={{ display: (!this.state.gameState.action || this.state.gameState.action=='preflop' && !this.state.gameState.players.filter((player)=>player.button)[0])?'block':'none' }} onClick={this.start} variant="contained" color="secondary">
+					开始
+			</Button>
+				<Join joined={this.state.joined} players={this.state.gameState.players} join={this.join} />
+				<Chatbox messages={this.state.gameState.messages} messageSubmit={this.messageSubmit} />
+				<Dialog open={this.state.rebuyWindow} onClose={this.handleClose}>
+					<DialogTitle>
+						{' '}
+						<Typography align="center" variant="subheading" gutterBottom>
+							Would you like to rebuy?
 							</Typography>
-						</DialogTitle>
-						<DialogContent>
-							<TextField margin="normal" onChange={this.handleChange} style={{ width: '100%' }} />
-						</DialogContent>
-						<DialogActions>
-							<div style={{ alignContent: 'center' }}>
-								<Button variant="contained" color="secondary" onClick={this.handleRebuy}>
-									Yes
+					</DialogTitle>
+					<DialogContent>
+						<TextField margin="normal" onChange={this.handleChange} style={{ width: '100%' }} />
+					</DialogContent>
+					<DialogActions>
+						<div style={{ alignContent: 'center' }}>
+							<Button variant="contained" color="secondary" onClick={this.handleRebuy}>
+								Yes
 								</Button>
-								<Button variant="contained" color="secondary" onClick={this.handleClose}>
-									No
+							<Button variant="contained" color="secondary" onClick={this.handleClose}>
+								No
 								</Button>
-							</div>
-						</DialogActions>
-					</Dialog>
-				</div>
+						</div>
+					</DialogActions>
+				</Dialog>
+				</div >
 			);
 		}
 	}

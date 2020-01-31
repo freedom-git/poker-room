@@ -4,7 +4,7 @@ import Button from '@material-ui/core/Button';
 const Check = (props) => {
 	return (
 		<Button variant="contained" color="primary" onClick={props.check}>
-			Check
+			过（Check）
 		</Button>
 	);
 };

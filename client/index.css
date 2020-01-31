@@ -76,7 +76,7 @@ width: 100%;
 
 
 .player-font {
-  font-size: 1vw
+  font-size: 14px
 }
 
 .table {
@@ -93,6 +93,15 @@ div {
   font-size: 16px;
 }
 
+.chips {
+  display: flex;
+  position: absolute;
+  top: 28%;
+  left: 18%;
+  width: 100%;
+  justify-content: space-around;
+}
+
 .chipImg {
   width: 50%;
   height: 100%;
@@ -103,22 +112,17 @@ div {
   height: 16%
 }
 
-.chip-2 {
+.other-chip {
   height: 10%;
   width: 10%;
   border-radius: 25px;
   display: flex;
-  position: absolute;
-  top: 35%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  -ms-transform: translate(-50%, -50%);
-  color: white;
+  color: #000000;
   font-size: 10px;
   padding: 12px 24px;
 }
 
-.chip-1 {
+.my-chip {
   height: 10%;
   width: 10%;
   border-radius: 25px;
@@ -130,10 +134,20 @@ div {
   -ms-transform: translate(-50%, -50%);
   color: white;
   font-size: 10px;
-  padding: 12px 24px;
+  /* padding: 12px 24px; */
+}
+
+.mark {
+  font-size: 14px;
+  color: #2196F3;
+  position: absolute;
+  top: -30px;
+}
+.zhuangjia {
+  color: #FF9800;
 }
 /* Style the button and place it in the middle of the container/image */
-.seat-1 {
+.my-seat {
   height: 10%;
   width: 25%;
   border-radius: 25px;
@@ -146,57 +160,27 @@ div {
   background-color: #26787c;
   color: white;
   font-size: 10px;
-  padding: 12px 24px;
+  /* padding: 12px 24px; */
 }
 
-.seat-1-active {
-  height: 10%;
-  width: 25%;
-  border-radius: 25px;
-  display: flex;
-  position: absolute;
-  top: 85%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  -ms-transform: translate(-50%, -50%);
-  background-color: #26787c;
-  color: white;
-  font-size: 10px;
-  padding: 12px 24px;
-  border: solid;
-  border-color: yellow
+.other-seats {
+    height: 10%;
+    width: 100%;
+    display: flex;
+    position: absolute;
+    top: 20%;
+    justify-content: space-around;
 }
 
-.seat-2 {
-  height: 10%;
-  width: 25%;
+.other-seat {
+  min-width:10%;
   border-radius: 25px;
-  display: flex;
-  position: absolute;
-  top: 20%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  -ms-transform: translate(-50%, -50%);
   background-color: #26787c;
   color: white;
   font-size: 16px;
-  padding: 12px 24px;
 }
 
-.seat-2-active {
-  height: 10%;
-  width: 25%;
-  border-radius: 25px;
-  display: flex;
-  position: absolute;
-  top: 20%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  -ms-transform: translate(-50%, -50%);
-  background-color: #26787c;
-  color: white;
-  font-size: 16px;
-  padding: 12px 24px;
+.active {
   border: solid;
   border-color: yellow
 }
@@ -233,7 +217,7 @@ div {
   width: 15%;
   height:8%;
   position: absolute;
-  top: 75%;
+  top: 70%;
   left: 65%;
   transform: translate(-50%, -50%);
   -ms-transform: translate(-50%, -50%);
@@ -244,31 +228,34 @@ div {
 }
 
 .opponentBoard {
-  width: 15%;
-  height:8%;
-  position: absolute;
-  top: 10%;
-  left: 65%;
-  transform: translate(-50%, -50%);
-  -ms-transform: translate(-50%, -50%);
-  background-color: none;
-  color: white;
-  font-size: 16px;
-  padding: 12px 24px;
+    width: 100%;
+    height: 8%;
+    position: absolute;
+    top: 10%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    left: 12%;
+    background-color: none;
+    color: white;
+    font-size: 16px;
+    padding: 12px 24px;
 }
 
 .boardInner {
   display: flex;
+  width: 100px;
 }
 
 .pot {
-  text-align: left
+  text-align: left;
+  color: #FFEB3B;
 }
 .boardCards {
   margin: 10px;
-  width: 100%;
+  width: 40%;
   height: 100%;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 .playerCards {

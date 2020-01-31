@@ -30,7 +30,8 @@ const addSpectators = (socketId) => {
 		bigBlind: false,
 		active: false,
 		activeBet: 0,
-		rebuys: 0
+		rebuys: 0,
+		fold:false
 	});
 };
 
@@ -68,13 +69,25 @@ const blindsToPot = () => {
 	gameState.activeBet = gameState.bigBlindValue;
 };
 
-const setInitialBlinds = () => {
-	gameState.players[0].button = true;
-	gameState.players[0].smallBlind = true;
-	gameState.players[1].bigBlind = true;
-	gameState.players[0].active = true;
-	blindsToPot();
+
+
+const setBlinds = (offset = 0) => {
+	gameState.players.forEach((player) => {
+		player.active = false;
+		player.button = false;
+		player.smallBlind = false;
+		player.bigBlind = false;
+	});
+	gameState.players[(0 + offset) % gameState.players.length].button = true;
+	gameState.players[(1 + offset) % gameState.players.length].smallBlind = true;
+	gameState.players[(2 + offset) % gameState.players.length].bigBlind = true;
+	gameState.players[(3 + offset) % gameState.players.length].active = true;
 };
+
+const setInitialBlinds = ()=>{
+	setBlinds(0);
+	blindsToPot();
+}
 
 const moveBlinds = () => {
 	for (let i = 0; i < gameState.players.length; i++) {
@@ -82,25 +95,10 @@ const moveBlinds = () => {
 			// reset active player to match blinds
 			gameState.players.forEach((player) => {
 				player.active = false;
+				player.fold = false;
 			});
 
-			// set current button to false and switch to BB
-			gameState.players[i].button = false;
-			gameState.players[i].smallBlind = false;
-			gameState.players[i].bigBlind = true;
-
-			// edge case if BB is last in the array
-			if (i + 1 < gameState.players.length) {
-				gameState.players[i + 1].button = true;
-				gameState.players[i + 1].active = true;
-				gameState.players[i + 1].smallBlind = true;
-				gameState.players[i + 1].bigBlind = false;
-			} else {
-				gameState.players[0].button = true;
-				gameState.players[0].active = true;
-				gameState.players[0].smallBlind = true;
-				gameState.players[0].bigBlind = false;
-			}
+			setBlinds(i+1);
 			blindsToPot();
 			break;
 		}
@@ -111,20 +109,24 @@ const check = (socketId) => {
 	for (let i = 0; i < gameState.players.length; i++) {
 		if (gameState.players[i].id === socketId) {
 			gameState.players[i].action = true;
-			if (i + 1 < gameState.players.length) {
-				gameState.players[i + 1].active = true;
-				gameState.players[i].active = false;
-			} else {
-				gameState.players[0].active = true;
-				gameState.players[i].active = false;
-			}
+			gameState.players[findNextActive(i)].active = true;
+			gameState.players[i].active = false;
 		}
 	}
 };
 
+const findNextActive = (index) => {
+	for (let i = 1; i < gameState.players.length; i++) {
+		if(!gameState.players[(index+i)%gameState.players.length].fold) {
+			return (index+i)%gameState.players.length
+		}
+	}
+}
+
 const playerActionCheck = () => {
-	for (let i = 0; i < gameState.players.length; i++) {
-		if (gameState.players[i].action === false) {
+	const unfoldPlayers = gameState.players.filter(player=>!player.fold)
+	for (let i = 0; i < unfoldPlayers.length; i++) {
+		if (unfoldPlayers[i].action === false) {
 			return false;
 		}
 	}
@@ -157,10 +159,11 @@ const potToTie = () => {
 const determineWinner = () => {
 	const hands = gameState.players;
 	const board = gameState.board;
+	const unfoldHands = gameState.players.filter(player=>!player.fold)
 
 	// check to see if any players have left during showdown to prevent server crash
-	if (gameState.players.length > 1 ){
-		const results = Ranker.orderHands(hands, board);
+	if (unfoldHands.length > 1) {
+		const results = Ranker.orderHands(unfoldHands, board);
 		console.log(results)
 		// check for tie
 		if (results[0].length > 1) {
@@ -182,18 +185,20 @@ const determineWinner = () => {
 };
 
 const determineLose = () => {
-		for (let i = 0; i < gameState.players.length; i++) {
-			if (gameState.players[i].bankroll <= 0) {
-				return gameState.players[i].id
-			}
+	for (let i = 0; i < gameState.players.length; i++) {
+		if (gameState.players[i].bankroll <= 0) {
+			return gameState.players[i].id
 		}
+	}
 }
 
 const resetActive = () => {
 	gameState.players.forEach((player) => {
-		if (player.bigBlind) {
+		if (player.smallBlind) {
 			player.active = true;
 		} else if (player.button) {
+			player.active = false;
+		} else {
 			player.active = false;
 		}
 	});
@@ -212,7 +217,7 @@ const changeBoard = () => {
 		resetPlayerAction();
 		gameState.minBet = 10
 		gameState.gameDeck.dealCards(1).forEach((card) => gameState.board.push(card));
-	} else if (gameState.action === 'turn') {	
+	} else if (gameState.action === 'turn') {
 		gameState.action = 'river';
 		resetActive();
 		resetPlayerAction();
@@ -250,17 +255,24 @@ const removePlayer = (socketId) => {
 };
 
 const fold = (socketId) => {
-	const winner = gameState.players.filter((player) => player.id !== socketId)[0];
-	potToPlayer(winner);
-	dealPlayers();
-	resetPlayerAction();
-	moveBlinds();
-
-	gameState.minBet = 20
+	const foldPlayer = gameState.players.filter((player) => player.id === socketId)[0];
+	foldPlayer.fold = true;
+	const unfoldPlayer = gameState.players.filter((player) => !player.fold);
+	if(unfoldPlayer.length===1) {
+		// 游戏结束
+		potToPlayer(unfoldPlayer[0]);
+		dealPlayers();
+		resetPlayerAction();
+		moveBlinds();
+	
+		gameState.minBet = 20
+	}else {
+		check(socketId)
+	}
 };
 
 const allInMode = () => {
-	
+
 	if (gameState.allIn === true) {
 
 		// deal out remaining cards
@@ -287,7 +299,7 @@ const call = (socketId) => {
 	}
 	// add to pot call amount
 	gameState.pot += callAmount - callingPlayer.activeBet;
-	callingPlayer.bankroll -= callAmount - callingPlayer.activeBet ;
+	callingPlayer.bankroll -= callAmount - callingPlayer.activeBet;
 	callingPlayer.activeBet = callAmount;
 
 	console.log('call amount', callAmount)
@@ -295,9 +307,9 @@ const call = (socketId) => {
 	// subtract from player stack
 
 	// check to see if player is all in
-if (callingPlayer.bankroll <= 0) {
-	gameState.allIn = true
-}
+	if (callingPlayer.bankroll <= 0) {
+		gameState.allIn = true
+	}
 	// use check function to move to next player
 	check(socketId);
 };
@@ -309,7 +321,7 @@ const bet = (socketId, actionAmount) => {
 	const betAmount = actionAmount;
 
 	// adjust minimum raise
-gameState.minBet = betAmount * 2 + gameState.activeBet
+	gameState.minBet = betAmount * 2 + gameState.activeBet
 
 	// add to pot bet amount
 	gameState.pot += betAmount;
@@ -322,15 +334,15 @@ gameState.minBet = betAmount * 2 + gameState.activeBet
 	bettingPlayer.bankroll -= betAmount;
 
 	// check to see if player is all in
-if (bettingPlayer.bankroll <= 0) {
-	gameState.allIn = true
-}
+	if (bettingPlayer.bankroll <= 0) {
+		gameState.allIn = true
+	}
 
 	// reset action
 	gameState.players.forEach((player) => {
 		player.action = false;
 	});
-console.log('betting set the minbet to:', gameState.minBet)
+	console.log('betting set the minbet to:', gameState.minBet)
 	// use check function to move to next player
 	check(socketId);
 };
@@ -344,24 +356,24 @@ const raise = (socketId, actionAmount) => {
 	if (raiseAmount > raisingPlayer.bankroll + raisingPlayer.activeBet) {
 		raiseAmount = raisingPlayer.bankroll + raisingPlayer.activeBet
 	}
-console.log('raise amount', raiseAmount)
-console.log('active bet', gameState.activeBet)
+	console.log('raise amount', raiseAmount)
+	console.log('active bet', gameState.activeBet)
 	// adjust minimum raise
 	gameState.minBet = raiseAmount
 
 	// calculating difference in raise
 	const raiseDifference = gameState.minBet - gameState.activeBet
-console.log('raise difference', raiseDifference)
+	console.log('raise difference', raiseDifference)
 	// add to pot bet amount
 	gameState.pot += gameState.minBet - raisingPlayer.activeBet;
 
 	//subtract from player stack
 	raisingPlayer.bankroll -= gameState.minBet - raisingPlayer.activeBet;
 
-		// check to see if player is all in
-if (raisingPlayer.bankroll <= 0) {
-	gameState.allIn = true
-}
+	// check to see if player is all in
+	if (raisingPlayer.bankroll <= 0) {
+		gameState.allIn = true
+	}
 
 
 	raisingPlayer.activeBet = gameState.minBet

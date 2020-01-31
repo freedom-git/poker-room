@@ -13,13 +13,13 @@ class Lobby extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-   open: false,
-   name: ''
+			open: false,
+			name: ''
 		};
 	}
 
- handleChange = (event) => {
-  this.setState({ name: event.target.value });
+	handleChange = (event) => {
+		this.setState({ name: event.target.value });
 	}
 
 	handleClickOpen = () => {
@@ -27,9 +27,9 @@ class Lobby extends Component {
 	};
 
 	handleClose = () => {
-  this.setState({ open: false });
-  this.props.addName(this.state.name)
-  console.log(this.state.name)
+		this.setState({ open: false });
+		this.props.addName(this.state.name)
+		console.log(this.state.name)
 	};
 	render() {
 		return (
@@ -53,11 +53,11 @@ class Lobby extends Component {
 						src="splash.png"
 					/>
 					<Typography style={{ marginTop: '50px' }} align="center" variant="subheading" gutterBottom>
-							Active players: {this.props.players.length}
-						</Typography>
-						<Typography align="center" variant="subheading" gutterBottom>
-							Spectators: {this.props.spectators.length}
-						</Typography>
+						Active players: {this.props.players.length}
+					</Typography>
+					<Typography align="center" variant="subheading" gutterBottom>
+						Spectators: {this.props.spectators.length}
+					</Typography>
 					<div style={{ textAlign: 'center', marginTop: '50px', marginBottom: '50px' }}>
 						<Button onClick={this.handleClickOpen} variant="contained" color="secondary">
 							Join Room
@@ -66,21 +66,21 @@ class Lobby extends Component {
 				</Paper>
 				<Dialog open={this.state.open} onClose={this.handleClose}>
 					<DialogTitle >	<Typography align="center" variant="subheading" gutterBottom>
-							Please enter your name:
+						Please enter your name:
 						</Typography></DialogTitle>
 					<DialogContent>
-     <TextField
-          margin="normal"
-          onChange={this.handleChange}
-          style={{width: '100%'}}
-        />
+						<TextField
+							margin="normal"
+							onChange={this.handleChange}
+							style={{ width: '100%' }}
+						/>
 					</DialogContent>
 					<DialogActions>
-      <div style={{ alignContent: 'center'}}>
-						<Button variant="contained" color="secondary" onClick={this.handleClose}>
-							Submit
+						<div style={{ alignContent: 'center' }}>
+							<Button variant="contained" color="secondary" onClick={this.handleClose}>
+								Submit
 						</Button>
-      </div>
+						</div>
 					</DialogActions>
 				</Dialog>
 			</div>

@@ -8,24 +8,27 @@ const Chip = (props) => {
 		return (
 			<div>
 				{players.map((player) => {
-					if (player.activeBet === 0) {
-						return <div />;
-					} else if (player.id === id) {
+					if (player.id === id) {
 						return (
-							<div className="chip-1">
-								<div style={{ marginRight: '5px' }}>${player.activeBet}</div>
-								<img className="chipImg" src="/chips/chip.png" />
-							</div>
-						);
-					} else if (player.id !== id) {
-						return (
-							<div className="chip-2">
+							<div className="my-chip">
 								<div style={{ marginRight: '5px' }}>${player.activeBet}</div>
 								<img className="chipImg" src="/chips/chip.png" />
 							</div>
 						);
 					}
 				})}
+				<div className="chips">
+					{players.map((player) => {
+						if (player.id !== id) {
+							return (
+								<div className="other-chip">
+									<div style={{ marginRight: '5px' }}>${player.activeBet}</div>
+									<img className="chipImg" src="/chips/chip.png" />
+								</div>
+							);
+						}
+					})}
+				</div>
 			</div>
 		);
 	} else {

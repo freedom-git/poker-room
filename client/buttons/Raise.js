@@ -11,7 +11,7 @@ console.log('bankroll', props.bankroll)
 	if (props.activeBet > 0 && (props.activeBet < props.bankroll)) {
 		return (
 			<Button variant="contained" color="primary" onClick={props.raise}>
-				Raise ${betAmount}
+				加注 ${betAmount}
 			</Button>
 		);
 	} else {

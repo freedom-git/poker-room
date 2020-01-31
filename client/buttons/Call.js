@@ -9,7 +9,7 @@ const Call = (props) => {
 
 	return (
 		<Button variant="contained" color="primary" onClick={props.call}>
-			Call: ${callAmount}
+			跟注: ${callAmount}
 		</Button>
 	);
 };

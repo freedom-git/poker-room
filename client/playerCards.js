@@ -11,6 +11,7 @@ const PlayerCards = (props) => {
 					if (player.cards.length > 0) {
 						return (
 							<div className="boardInner">
+								<div style={{display:player.fold?'block':'none'}}>弃牌</div>
 								<img className="playerCards" src={`/cardImages/${player.cards[0]}.png`} />
 								<img className="playerCards" src={`/cardImages/${player.cards[1]}.png`} />
 							</div>

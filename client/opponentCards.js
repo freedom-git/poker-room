@@ -13,14 +13,14 @@ const OpponentCards = (props) => {
 				{otherPlayer.map((player) => {
 					if (player.cards.length > 0 && showdown === false) {
 						return (
-							<div className="boardInner">
+							<div className="boardInner" style={{display:player.fold?'none':'flex'}}>
 								<img className="playerCards" src={`/cardImages/blank.png`} />
 								<img className="playerCards" src={`/cardImages/blank.png`} />
 							</div>
 						);
 					} else if (player.cards.length > 0 && showdown === true) {
 						return (
-							<div className="boardInner">
+							<div className="boardInner" style={{display:player.fold?'none':'flex'}}>
 								<img className="playerCards" src={`/cardImages/${player.cards[0]}.png`} />
 								<img className="playerCards" src={`/cardImages/${player.cards[1]}.png`} />
 							</div>

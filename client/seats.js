@@ -1,4 +1,5 @@
 import React from 'react';
+import Blinds from './Blinds';
 
 const Seats = (props) => {
 	const players = props.players;
@@ -17,24 +18,28 @@ const Seats = (props) => {
 		}
 		return (
 			<div>
-				<div key={clientPlayer[0].id} className={'seat-1' + active}>
+				<div key={clientPlayer[0].id} className={(clientPlayer[0].active ? 'active' : '') + ' ' + 'my-seat'}>
 					<div className="player">
+						<Blinds button={clientPlayer[0].button} bigBlind={clientPlayer[0].bigBlind} smallBlind={clientPlayer[0].smallBlind} />
 						<div className="player-font">{clientPlayer[0].name}</div>
 						<div className="player-font">${clientPlayer[0].bankroll}</div>
 					</div>
 				</div>
-				{players.map((player) => {
-					if (player.id !== props.id) {
-						return (
-							<div key={player.name} className={'seat-2' + otherActive}>
-								<div className="player">
-									<div className="player-font"> {player.name}</div>
-									<div className="player-font">${player.bankroll}</div>
+				<div className={'other-seats'}>
+					{players.map((player) => {
+						if (player.id !== props.id) {
+							return (
+								<div key={player.name} className={(player.active ? 'active' : '') + ' ' + 'other-seat'}>
+									<div className="player">
+										<Blinds button={player.button} bigBlind={player.bigBlind} smallBlind={player.smallBlind} />
+										<div className="player-font"> {player.name}</div>
+										<div className="player-font">${player.bankroll}</div>
+									</div>
 								</div>
-							</div>
-						);
-					}
-				})}
+							);
+						}
+					})}
+				</div>
 			</div>
 		);
 	} else if (clientPlayer.length === 0) {
@@ -54,16 +59,7 @@ const Seats = (props) => {
 				{players.map((player) => {
 					if (players.indexOf(player) === 0) {
 						return (
-							<div key={player.name} className={'seat-1' + active}>
-								<div className="player">
-									<div className="player-font"> {player.name}</div>
-									<div className="player-font">${player.bankroll}</div>
-								</div>
-							</div>
-						);
-					} else if (players.indexOf(player) === 1) {
-						return (
-							<div key={player.name} className={'seat-2' + otherActive}>
+							<div key={player.name} className={'my-seat ' + (player.active ? 'active' : '')}>
 								<div className="player">
 									<div className="player-font"> {player.name}</div>
 									<div className="player-font">${player.bankroll}</div>
@@ -72,6 +68,20 @@ const Seats = (props) => {
 						);
 					}
 				})}
+				<div className={'other-seats'}>
+					{players.map((player) => {
+						if (players.indexOf(player) !== 0) {
+							return (
+								<div key={player.name} className={(player.active ? 'active' : '') + ' ' + 'other-seat'}>
+									<div className="player">
+										<div className="player-font"> {player.name}</div>
+										<div className="player-font">${player.bankroll}</div>
+									</div>
+								</div>
+							);
+						}
+					})}
+				</div>
 			</div>
 		);
 	} else {
